@@ -1,13 +1,12 @@
 package main
 
 import (
-	"time"
-
 	"fmt"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/sqs"
+	uuid "github.com/satori/go.uuid"
 )
 
 func main() {
@@ -34,7 +33,7 @@ func main() {
     }
   }`
 
-	for i := 0; i < 1000; i++ {
+	for i := 0; i < 10000; i++ {
 		fmt.Println(fmt.Sprintf("No.%v", i))
 		res, err := svc.SendMessageBatch(&sqs.SendMessageBatchInput{
 			QueueUrl: aws.String("http://localhost:9324/queue/local_line_messages"),
@@ -43,8 +42,9 @@ func main() {
 				&sqs.SendMessageBatchRequestEntry{
 					Id: aws.String(fmt.Sprintf("%v%v", "A", i)),
 					MessageAttributes: map[string]*sqs.MessageAttributeValue{
-						"acid":     &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String("736afbdc388752eb")},
-						"sendType": &sqs.MessageAttributeValue{DataType: aws.String("Number"), StringValue: aws.String("1")},
+						"uniqueMessageID": &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String(uuid.NewV4().String())},
+						"acid":            &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String("736afbdc388752eb")},
+						"sendType":        &sqs.MessageAttributeValue{DataType: aws.String("Number"), StringValue: aws.String("1")},
 					},
 					MessageBody: aws.String(fmt.Sprintf(bodyTmpl, "A", i)),
 				},
@@ -52,8 +52,9 @@ func main() {
 				&sqs.SendMessageBatchRequestEntry{
 					Id: aws.String(fmt.Sprintf("%v%v", "B", i)),
 					MessageAttributes: map[string]*sqs.MessageAttributeValue{
-						"acid":     &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String("736afbdc388752eb")},
-						"sendType": &sqs.MessageAttributeValue{DataType: aws.String("Number"), StringValue: aws.String("1")},
+						"uniqueMessageID": &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String(uuid.NewV4().String())},
+						"acid":            &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String("736afbdc388752eb")},
+						"sendType":        &sqs.MessageAttributeValue{DataType: aws.String("Number"), StringValue: aws.String("1")},
 					},
 					MessageBody: aws.String(fmt.Sprintf(bodyTmpl, "B", i)),
 				},
@@ -61,8 +62,9 @@ func main() {
 				&sqs.SendMessageBatchRequestEntry{
 					Id: aws.String(fmt.Sprintf("%v%v", "C", i)),
 					MessageAttributes: map[string]*sqs.MessageAttributeValue{
-						"acid":     &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String("736afbdc388752eb")},
-						"sendType": &sqs.MessageAttributeValue{DataType: aws.String("Number"), StringValue: aws.String("1")},
+						"uniqueMessageID": &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String(uuid.NewV4().String())},
+						"acid":            &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String("736afbdc388752eb")},
+						"sendType":        &sqs.MessageAttributeValue{DataType: aws.String("Number"), StringValue: aws.String("1")},
 					},
 					MessageBody: aws.String(fmt.Sprintf(bodyTmpl, "C", i)),
 				},
@@ -70,8 +72,9 @@ func main() {
 				&sqs.SendMessageBatchRequestEntry{
 					Id: aws.String(fmt.Sprintf("%v%v", "D", i)),
 					MessageAttributes: map[string]*sqs.MessageAttributeValue{
-						"acid":     &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String("736afbdc388752eb")},
-						"sendType": &sqs.MessageAttributeValue{DataType: aws.String("Number"), StringValue: aws.String("1")},
+						"uniqueMessageID": &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String(uuid.NewV4().String())},
+						"acid":            &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String("736afbdc388752eb")},
+						"sendType":        &sqs.MessageAttributeValue{DataType: aws.String("Number"), StringValue: aws.String("1")},
 					},
 					MessageBody: aws.String(fmt.Sprintf(bodyTmpl, "D", i)),
 				},
@@ -79,8 +82,9 @@ func main() {
 				&sqs.SendMessageBatchRequestEntry{
 					Id: aws.String(fmt.Sprintf("%v%v", "E", i)),
 					MessageAttributes: map[string]*sqs.MessageAttributeValue{
-						"acid":     &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String("736afbdc388752eb")},
-						"sendType": &sqs.MessageAttributeValue{DataType: aws.String("Number"), StringValue: aws.String("1")},
+						"uniqueMessageID": &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String(uuid.NewV4().String())},
+						"acid":            &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String("736afbdc388752eb")},
+						"sendType":        &sqs.MessageAttributeValue{DataType: aws.String("Number"), StringValue: aws.String("1")},
 					},
 					MessageBody: aws.String(fmt.Sprintf(bodyTmpl, "E", i)),
 				},
@@ -88,8 +92,9 @@ func main() {
 				&sqs.SendMessageBatchRequestEntry{
 					Id: aws.String(fmt.Sprintf("%v%v", "F", i)),
 					MessageAttributes: map[string]*sqs.MessageAttributeValue{
-						"acid":     &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String("736afbdc388752eb")},
-						"sendType": &sqs.MessageAttributeValue{DataType: aws.String("Number"), StringValue: aws.String("1")},
+						"uniqueMessageID": &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String(uuid.NewV4().String())},
+						"acid":            &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String("736afbdc388752eb")},
+						"sendType":        &sqs.MessageAttributeValue{DataType: aws.String("Number"), StringValue: aws.String("1")},
 					},
 					MessageBody: aws.String(fmt.Sprintf(bodyTmpl, "F", i)),
 				},
@@ -97,8 +102,9 @@ func main() {
 				&sqs.SendMessageBatchRequestEntry{
 					Id: aws.String(fmt.Sprintf("%v%v", "G", i)),
 					MessageAttributes: map[string]*sqs.MessageAttributeValue{
-						"acid":     &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String("736afbdc388752eb")},
-						"sendType": &sqs.MessageAttributeValue{DataType: aws.String("Number"), StringValue: aws.String("1")},
+						"uniqueMessageID": &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String(uuid.NewV4().String())},
+						"acid":            &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String("736afbdc388752eb")},
+						"sendType":        &sqs.MessageAttributeValue{DataType: aws.String("Number"), StringValue: aws.String("1")},
 					},
 					MessageBody: aws.String(fmt.Sprintf(bodyTmpl, "G", i)),
 				},
@@ -106,8 +112,9 @@ func main() {
 				&sqs.SendMessageBatchRequestEntry{
 					Id: aws.String(fmt.Sprintf("%v%v", "H", i)),
 					MessageAttributes: map[string]*sqs.MessageAttributeValue{
-						"acid":     &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String("736afbdc388752eb")},
-						"sendType": &sqs.MessageAttributeValue{DataType: aws.String("Number"), StringValue: aws.String("1")},
+						"uniqueMessageID": &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String(uuid.NewV4().String())},
+						"acid":            &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String("736afbdc388752eb")},
+						"sendType":        &sqs.MessageAttributeValue{DataType: aws.String("Number"), StringValue: aws.String("1")},
 					},
 					MessageBody: aws.String(fmt.Sprintf(bodyTmpl, "H", i)),
 				},
@@ -115,8 +122,9 @@ func main() {
 				&sqs.SendMessageBatchRequestEntry{
 					Id: aws.String(fmt.Sprintf("%v%v", "I", i)),
 					MessageAttributes: map[string]*sqs.MessageAttributeValue{
-						"acid":     &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String("736afbdc388752eb")},
-						"sendType": &sqs.MessageAttributeValue{DataType: aws.String("Number"), StringValue: aws.String("1")},
+						"uniqueMessageID": &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String(uuid.NewV4().String())},
+						"acid":            &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String("736afbdc388752eb")},
+						"sendType":        &sqs.MessageAttributeValue{DataType: aws.String("Number"), StringValue: aws.String("1")},
 					},
 					MessageBody: aws.String(fmt.Sprintf(bodyTmpl, "I", i)),
 				},
@@ -124,8 +132,9 @@ func main() {
 				&sqs.SendMessageBatchRequestEntry{
 					Id: aws.String(fmt.Sprintf("%v%v", "J", i)),
 					MessageAttributes: map[string]*sqs.MessageAttributeValue{
-						"acid":     &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String("736afbdc388752eb")},
-						"sendType": &sqs.MessageAttributeValue{DataType: aws.String("Number"), StringValue: aws.String("1")},
+						"uniqueMessageID": &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String(uuid.NewV4().String())},
+						"acid":            &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String("736afbdc388752eb")},
+						"sendType":        &sqs.MessageAttributeValue{DataType: aws.String("Number"), StringValue: aws.String("1")},
 					},
 					MessageBody: aws.String(fmt.Sprintf(bodyTmpl, "J", i)),
 				},
@@ -137,7 +146,7 @@ func main() {
 		if res == nil {
 			panic("res is nil")
 		}
-		time.Sleep(10 * time.Millisecond)
+		//time.Sleep(10 * time.Millisecond)
 		fmt.Println("Next!")
 	}
 }
