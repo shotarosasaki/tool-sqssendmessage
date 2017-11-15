@@ -35,8 +35,13 @@ func main() {
       }
     }`
 
+    tformat := time.StampMicro
+
+    fmt.Printf("[%v]START\n", time.Now().Format(tformat))
+
 	for i := 0; i < 100; i++ {
-		fmt.Println(fmt.Sprintf("No.%v", i))
+		fmt.Printf("[%v]No.%v\n", time.Now().Format(tformat), i)
+
 		res, err := svc.SendMessageBatch(&sqs.SendMessageBatchInput{
 			QueueUrl: aws.String("http://localhost:9324/queue/local_line_messages"),
 			Entries: []*sqs.SendMessageBatchRequestEntry{
@@ -159,6 +164,7 @@ func main() {
 		//time.Sleep(100 * time.Millisecond)
 		// 秒間５００メッセージ配信用（ループカウント５０００と組み合わせて、トータル５００００メッセージ配信）
 		//time.Sleep(20 * time.Millisecond)
-		fmt.Println("Next!")
 	}
+
+	fmt.Printf("[%v]END\n", time.Now().Format(tformat))
 }
