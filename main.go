@@ -9,9 +9,13 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/sqs"
 	uuid "github.com/satori/go.uuid"
+	"flag"
 )
 
 func main() {
+	argACID := flag.String("acid", "1234abcd5678efgh", "ACID")
+	flag.Parse()
+
 	s, err := session.NewSession(&aws.Config{
 		Region: aws.String("ap-northeast-1"),
 	})
@@ -37,10 +41,10 @@ func main() {
 
     tformat := time.StampMicro
 
-    fmt.Printf("[%v]START\n", time.Now().Format(tformat))
+    fmt.Printf("[%v][ACID:%v]START\n", time.Now().Format(tformat), *argACID)
 
 	for i := 0; i < 100; i++ {
-		fmt.Printf("[%v]No.%v\n", time.Now().Format(tformat), i)
+		fmt.Printf("[%v][ACID:%v]No.%v\n", time.Now().Format(tformat), *argACID, i)
 
 		res, err := svc.SendMessageBatch(&sqs.SendMessageBatchInput{
 			QueueUrl: aws.String("http://localhost:9324/queue/local_line_messages"),
@@ -50,7 +54,7 @@ func main() {
 					Id: aws.String(fmt.Sprintf("%v%v", "A", i)),
 					MessageAttributes: map[string]*sqs.MessageAttributeValue{
 						"uniqueMessageID": &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String(uuid.NewV4().String())},
-						"acid":            &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String("1234abcd5678efgh")},
+						"acid":            &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String(*argACID)},
 						"sendType":        &sqs.MessageAttributeValue{DataType: aws.String("Number"), StringValue: aws.String("1")},
 					},
 					MessageBody: aws.String(fmt.Sprintf(bodyTmpl, "A", i)),
@@ -60,7 +64,7 @@ func main() {
 					Id: aws.String(fmt.Sprintf("%v%v", "B", i)),
 					MessageAttributes: map[string]*sqs.MessageAttributeValue{
 						"uniqueMessageID": &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String(uuid.NewV4().String())},
-						"acid":            &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String("1234abcd5678efgh")},
+						"acid":            &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String(*argACID)},
 						"sendType":        &sqs.MessageAttributeValue{DataType: aws.String("Number"), StringValue: aws.String("1")},
 					},
 					MessageBody: aws.String(fmt.Sprintf(bodyTmpl, "B", i)),
@@ -70,7 +74,7 @@ func main() {
 					Id: aws.String(fmt.Sprintf("%v%v", "C", i)),
 					MessageAttributes: map[string]*sqs.MessageAttributeValue{
 						"uniqueMessageID": &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String(uuid.NewV4().String())},
-						"acid":            &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String("1234abcd5678efgh")},
+						"acid":            &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String(*argACID)},
 						"sendType":        &sqs.MessageAttributeValue{DataType: aws.String("Number"), StringValue: aws.String("1")},
 					},
 					MessageBody: aws.String(fmt.Sprintf(bodyTmpl, "C", i)),
@@ -80,7 +84,7 @@ func main() {
 					Id: aws.String(fmt.Sprintf("%v%v", "D", i)),
 					MessageAttributes: map[string]*sqs.MessageAttributeValue{
 						"uniqueMessageID": &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String(uuid.NewV4().String())},
-						"acid":            &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String("1234abcd5678efgh")},
+						"acid":            &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String(*argACID)},
 						"sendType":        &sqs.MessageAttributeValue{DataType: aws.String("Number"), StringValue: aws.String("1")},
 					},
 					MessageBody: aws.String(fmt.Sprintf(bodyTmpl, "D", i)),
@@ -90,7 +94,7 @@ func main() {
 					Id: aws.String(fmt.Sprintf("%v%v", "E", i)),
 					MessageAttributes: map[string]*sqs.MessageAttributeValue{
 						"uniqueMessageID": &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String(uuid.NewV4().String())},
-						"acid":            &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String("1234abcd5678efgh")},
+						"acid":            &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String(*argACID)},
 						"sendType":        &sqs.MessageAttributeValue{DataType: aws.String("Number"), StringValue: aws.String("1")},
 					},
 					MessageBody: aws.String(fmt.Sprintf(bodyTmpl, "E", i)),
@@ -100,7 +104,7 @@ func main() {
 					Id: aws.String(fmt.Sprintf("%v%v", "F", i)),
 					MessageAttributes: map[string]*sqs.MessageAttributeValue{
 						"uniqueMessageID": &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String(uuid.NewV4().String())},
-						"acid":            &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String("1234abcd5678efgh")},
+						"acid":            &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String(*argACID)},
 						"sendType":        &sqs.MessageAttributeValue{DataType: aws.String("Number"), StringValue: aws.String("1")},
 					},
 					MessageBody: aws.String(fmt.Sprintf(bodyTmpl, "F", i)),
@@ -110,7 +114,7 @@ func main() {
 					Id: aws.String(fmt.Sprintf("%v%v", "G", i)),
 					MessageAttributes: map[string]*sqs.MessageAttributeValue{
 						"uniqueMessageID": &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String(uuid.NewV4().String())},
-						"acid":            &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String("1234abcd5678efgh")},
+						"acid":            &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String(*argACID)},
 						"sendType":        &sqs.MessageAttributeValue{DataType: aws.String("Number"), StringValue: aws.String("1")},
 					},
 					MessageBody: aws.String(fmt.Sprintf(bodyTmpl, "G", i)),
@@ -120,7 +124,7 @@ func main() {
 					Id: aws.String(fmt.Sprintf("%v%v", "H", i)),
 					MessageAttributes: map[string]*sqs.MessageAttributeValue{
 						"uniqueMessageID": &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String(uuid.NewV4().String())},
-						"acid":            &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String("1234abcd5678efgh")},
+						"acid":            &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String(*argACID)},
 						"sendType":        &sqs.MessageAttributeValue{DataType: aws.String("Number"), StringValue: aws.String("1")},
 					},
 					MessageBody: aws.String(fmt.Sprintf(bodyTmpl, "H", i)),
@@ -130,7 +134,7 @@ func main() {
 					Id: aws.String(fmt.Sprintf("%v%v", "I", i)),
 					MessageAttributes: map[string]*sqs.MessageAttributeValue{
 						"uniqueMessageID": &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String(uuid.NewV4().String())},
-						"acid":            &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String("1234abcd5678efgh")},
+						"acid":            &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String(*argACID)},
 						"sendType":        &sqs.MessageAttributeValue{DataType: aws.String("Number"), StringValue: aws.String("1")},
 					},
 					MessageBody: aws.String(fmt.Sprintf(bodyTmpl, "I", i)),
@@ -140,7 +144,7 @@ func main() {
 					Id: aws.String(fmt.Sprintf("%v%v", "J", i)),
 					MessageAttributes: map[string]*sqs.MessageAttributeValue{
 						"uniqueMessageID": &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String(uuid.NewV4().String())},
-						"acid":            &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String("1234abcd5678efgh")},
+						"acid":            &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String(*argACID)},
 						"sendType":        &sqs.MessageAttributeValue{DataType: aws.String("Number"), StringValue: aws.String("1")},
 					},
 					MessageBody: aws.String(fmt.Sprintf(bodyTmpl, "J", i)),
@@ -166,5 +170,5 @@ func main() {
 		//time.Sleep(20 * time.Millisecond)
 	}
 
-	fmt.Printf("[%v]END\n", time.Now().Format(tformat))
+	fmt.Printf("[%v][ACID:%v]END\n", time.Now().Format(tformat), *argACID)
 }
