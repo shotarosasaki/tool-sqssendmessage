@@ -13,16 +13,32 @@ import (
 )
 
 func main() {
+	tformat := time.StampMicro
+	region := "ap-northeast-1"
+
 	argACID := flag.String("acid", "1234abcd5678efgh", "ACID")
+	argUserID := flag.String("userID", "U1234567890abcdefgh1234567890abcd", "ユーザID")
+	argEndpoint := flag.String("endpoint", "http://localhost:9324/queue/", "SQSエンドポイント")
+	argQueueName := flag.String("queueName", "local_line_messages", "SQSキュー名")
+	argLoopCount := flag.Int("loopCount", 100, "ループカウント")
+	argDelay := flag.String("delay", "1s", "１ループ毎の遅延時間（「500ms」のようなtime.Duration形式）")
+	argEntryCount := flag.Int("entryCount", 10, "１ループ毎の送信メッセージ数")
 	flag.Parse()
 
+	fmt.Printf("[%v][ACID:%v]ARGS(userID:%v)\n", time.Now().Format(tformat), *argACID, *argUserID)
+	fmt.Printf("[%v][ACID:%v]ARGS(endpoint:%v)\n", time.Now().Format(tformat), *argACID, *argEndpoint)
+	fmt.Printf("[%v][ACID:%v]ARGS(queueName:%v)\n", time.Now().Format(tformat), *argACID, *argQueueName)
+	fmt.Printf("[%v][ACID:%v]ARGS(loopCount:%v)\n", time.Now().Format(tformat), *argACID, *argLoopCount)
+	fmt.Printf("[%v][ACID:%v]ARGS(delay:%v)\n", time.Now().Format(tformat), *argACID, *argDelay)
+	fmt.Printf("[%v][ACID:%v]ARGS(entryCount:%v)\n", time.Now().Format(tformat), *argACID, *argEntryCount)
+
 	s, err := session.NewSession(&aws.Config{
-		Region: aws.String("ap-northeast-1"),
+		Region: aws.String(region),
 	})
 	if err != nil {
 		panic(err)
 	}
-	svc := sqs.New(s, aws.NewConfig().WithEndpoint("http://localhost:9324/queue/").WithRegion("ap-northeast-1"))
+	svc := sqs.New(s, aws.NewConfig().WithEndpoint(*argEndpoint).WithRegion(region))
 
 	bodyTmpl := `{
       "replyToken": "%v%v",
@@ -30,7 +46,7 @@ func main() {
       "timestamp": 1462629479859,
       "source": {
         "type": "user",
-        "userId": "U1234567890abcdefgh1234567890abcd"
+        "userId": "%v"
       },
       "message": {
         "id": "325708",
@@ -39,135 +55,43 @@ func main() {
       }
     }`
 
-    tformat := time.StampMicro
-
     fmt.Printf("[%v][ACID:%v]START\n", time.Now().Format(tformat), *argACID)
 
-	for i := 0; i < 100; i++ {
+	for i := 0; i < *argLoopCount; i++ {
 		fmt.Printf("[%v][ACID:%v]No.%v\n", time.Now().Format(tformat), *argACID, i)
 
+		var entries []*sqs.SendMessageBatchRequestEntry
+		for j := 0; j < *argEntryCount; j++ {
+			entries = append(entries, &sqs.SendMessageBatchRequestEntry{
+				Id: aws.String(fmt.Sprintf("%v%v", i, j)),
+				MessageAttributes: map[string]*sqs.MessageAttributeValue{
+					"uniqueMessageID": &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String(uuid.NewV4().String())},
+					"acid":            &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String(*argACID)},
+					"sendType":        &sqs.MessageAttributeValue{DataType: aws.String("Number"), StringValue: aws.String("1")},
+				},
+				MessageBody: aws.String(fmt.Sprintf(bodyTmpl, i, j, *argUserID)),
+			},)
+		}
+
 		res, err := svc.SendMessageBatch(&sqs.SendMessageBatchInput{
-			QueueUrl: aws.String("http://localhost:9324/queue/local_line_messages"),
-			Entries: []*sqs.SendMessageBatchRequestEntry{
-
-				&sqs.SendMessageBatchRequestEntry{
-					Id: aws.String(fmt.Sprintf("%v%v", "A", i)),
-					MessageAttributes: map[string]*sqs.MessageAttributeValue{
-						"uniqueMessageID": &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String(uuid.NewV4().String())},
-						"acid":            &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String(*argACID)},
-						"sendType":        &sqs.MessageAttributeValue{DataType: aws.String("Number"), StringValue: aws.String("1")},
-					},
-					MessageBody: aws.String(fmt.Sprintf(bodyTmpl, "A", i)),
-				},
-
-				&sqs.SendMessageBatchRequestEntry{
-					Id: aws.String(fmt.Sprintf("%v%v", "B", i)),
-					MessageAttributes: map[string]*sqs.MessageAttributeValue{
-						"uniqueMessageID": &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String(uuid.NewV4().String())},
-						"acid":            &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String(*argACID)},
-						"sendType":        &sqs.MessageAttributeValue{DataType: aws.String("Number"), StringValue: aws.String("1")},
-					},
-					MessageBody: aws.String(fmt.Sprintf(bodyTmpl, "B", i)),
-				},
-
-				&sqs.SendMessageBatchRequestEntry{
-					Id: aws.String(fmt.Sprintf("%v%v", "C", i)),
-					MessageAttributes: map[string]*sqs.MessageAttributeValue{
-						"uniqueMessageID": &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String(uuid.NewV4().String())},
-						"acid":            &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String(*argACID)},
-						"sendType":        &sqs.MessageAttributeValue{DataType: aws.String("Number"), StringValue: aws.String("1")},
-					},
-					MessageBody: aws.String(fmt.Sprintf(bodyTmpl, "C", i)),
-				},
-
-				&sqs.SendMessageBatchRequestEntry{
-					Id: aws.String(fmt.Sprintf("%v%v", "D", i)),
-					MessageAttributes: map[string]*sqs.MessageAttributeValue{
-						"uniqueMessageID": &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String(uuid.NewV4().String())},
-						"acid":            &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String(*argACID)},
-						"sendType":        &sqs.MessageAttributeValue{DataType: aws.String("Number"), StringValue: aws.String("1")},
-					},
-					MessageBody: aws.String(fmt.Sprintf(bodyTmpl, "D", i)),
-				},
-
-				&sqs.SendMessageBatchRequestEntry{
-					Id: aws.String(fmt.Sprintf("%v%v", "E", i)),
-					MessageAttributes: map[string]*sqs.MessageAttributeValue{
-						"uniqueMessageID": &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String(uuid.NewV4().String())},
-						"acid":            &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String(*argACID)},
-						"sendType":        &sqs.MessageAttributeValue{DataType: aws.String("Number"), StringValue: aws.String("1")},
-					},
-					MessageBody: aws.String(fmt.Sprintf(bodyTmpl, "E", i)),
-				},
-
-				&sqs.SendMessageBatchRequestEntry{
-					Id: aws.String(fmt.Sprintf("%v%v", "F", i)),
-					MessageAttributes: map[string]*sqs.MessageAttributeValue{
-						"uniqueMessageID": &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String(uuid.NewV4().String())},
-						"acid":            &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String(*argACID)},
-						"sendType":        &sqs.MessageAttributeValue{DataType: aws.String("Number"), StringValue: aws.String("1")},
-					},
-					MessageBody: aws.String(fmt.Sprintf(bodyTmpl, "F", i)),
-				},
-
-				&sqs.SendMessageBatchRequestEntry{
-					Id: aws.String(fmt.Sprintf("%v%v", "G", i)),
-					MessageAttributes: map[string]*sqs.MessageAttributeValue{
-						"uniqueMessageID": &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String(uuid.NewV4().String())},
-						"acid":            &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String(*argACID)},
-						"sendType":        &sqs.MessageAttributeValue{DataType: aws.String("Number"), StringValue: aws.String("1")},
-					},
-					MessageBody: aws.String(fmt.Sprintf(bodyTmpl, "G", i)),
-				},
-
-				&sqs.SendMessageBatchRequestEntry{
-					Id: aws.String(fmt.Sprintf("%v%v", "H", i)),
-					MessageAttributes: map[string]*sqs.MessageAttributeValue{
-						"uniqueMessageID": &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String(uuid.NewV4().String())},
-						"acid":            &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String(*argACID)},
-						"sendType":        &sqs.MessageAttributeValue{DataType: aws.String("Number"), StringValue: aws.String("1")},
-					},
-					MessageBody: aws.String(fmt.Sprintf(bodyTmpl, "H", i)),
-				},
-
-				&sqs.SendMessageBatchRequestEntry{
-					Id: aws.String(fmt.Sprintf("%v%v", "I", i)),
-					MessageAttributes: map[string]*sqs.MessageAttributeValue{
-						"uniqueMessageID": &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String(uuid.NewV4().String())},
-						"acid":            &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String(*argACID)},
-						"sendType":        &sqs.MessageAttributeValue{DataType: aws.String("Number"), StringValue: aws.String("1")},
-					},
-					MessageBody: aws.String(fmt.Sprintf(bodyTmpl, "I", i)),
-				},
-
-				&sqs.SendMessageBatchRequestEntry{
-					Id: aws.String(fmt.Sprintf("%v%v", "J", i)),
-					MessageAttributes: map[string]*sqs.MessageAttributeValue{
-						"uniqueMessageID": &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String(uuid.NewV4().String())},
-						"acid":            &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String(*argACID)},
-						"sendType":        &sqs.MessageAttributeValue{DataType: aws.String("Number"), StringValue: aws.String("1")},
-					},
-					MessageBody: aws.String(fmt.Sprintf(bodyTmpl, "J", i)),
-				},
-			},
+			QueueUrl: aws.String(fmt.Sprintf("%s%s", *argEndpoint, *argQueueName)),
+			Entries: entries,
 		})
 		if err != nil {
+			fmt.Printf("[%v][ACID:%v]SendMessageBatch Error:%#v\n", time.Now().Format(tformat), *argACID, err.Error())
 			panic(err)
 		}
 		if res == nil {
 			panic("res is nil")
 		}
 
-		// 秒間１０メッセージ配信用（ループカウント１００と組み合わせて、トータル１０００メッセージ配信）
-		time.Sleep(1 * time.Second)
-		// 秒間２０メッセージ配信用（ループカウント２００と組み合わせて、トータル２０００メッセージ配信）
-		//time.Sleep(500 * time.Millisecond)
-		// 秒間４０メッセージ配信用（ループカウント４００と組み合わせて、トータル４０００メッセージ配信）
-		//time.Sleep(250 * time.Millisecond)
-		// 秒間１００メッセージ配信用（ループカウント１０００と組み合わせて、トータル１００００メッセージ配信）
-		//time.Sleep(100 * time.Millisecond)
-		// 秒間５００メッセージ配信用（ループカウント５０００と組み合わせて、トータル５００００メッセージ配信）
-		//time.Sleep(20 * time.Millisecond)
+		delay, err := time.ParseDuration(*argDelay)
+		if err != nil {
+			fmt.Printf("[%v][ACID:%v]ParseDuration Error:%#v\n", time.Now().Format(tformat), *argACID, err.Error())
+			panic(err)
+		}
+
+		time.Sleep(delay)
 	}
 
 	fmt.Printf("[%v][ACID:%v]END\n", time.Now().Format(tformat), *argACID)
