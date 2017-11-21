@@ -6,5 +6,9 @@ import:
   - aws
   - aws/session
   - service/sqs
+- package: github.com/line/line-bot-sdk-go
+  version: cda5202f030a1e284c005854d45ef84c0ef460da
+  subpackages:
+  - linebot
 - package: github.com/satori/go.uuid
   version: ~1.1.0
