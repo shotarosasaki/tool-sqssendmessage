@@ -38,7 +38,7 @@ func main() {
 		Region: aws.String(region),
 		Endpoint: argEndpoint,
 	}
-	awsCfg.Credentials = credentials.NewEnvCredentials()
+	//awsCfg.Credentials = credentials.NewEnvCredentials()
 
 	s, err := session.NewSession(awsCfg)
 	if err != nil {
