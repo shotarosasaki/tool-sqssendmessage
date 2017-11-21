@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/sqs"
 	uuid "github.com/satori/go.uuid"
@@ -38,7 +37,6 @@ func main() {
 		Region: aws.String(region),
 		Endpoint: argEndpoint,
 	}
-	//awsCfg.Credentials = credentials.NewEnvCredentials()
 
 	s, err := session.NewSession(awsCfg)
 	if err != nil {
