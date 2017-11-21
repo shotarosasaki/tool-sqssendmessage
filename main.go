@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/sqs"
 	uuid "github.com/satori/go.uuid"
@@ -32,13 +33,18 @@ func main() {
 	fmt.Printf("[%v][ACID:%v]ARGS(delay:%v)\n", time.Now().Format(tformat), *argACID, *argDelay)
 	fmt.Printf("[%v][ACID:%v]ARGS(entryCount:%v)\n", time.Now().Format(tformat), *argACID, *argEntryCount)
 
-	s, err := session.NewSession(&aws.Config{
+	// Credentialは環境変数セット済の前提
+	awsCfg := &aws.Config{
 		Region: aws.String(region),
-	})
+		Endpoint: argEndpoint,
+	}
+	awsCfg.Credentials = credentials.NewEnvCredentials()
+
+	s, err := session.NewSession(awsCfg)
 	if err != nil {
 		panic(err)
 	}
-	svc := sqs.New(s, aws.NewConfig().WithEndpoint(*argEndpoint).WithRegion(region))
+	svc := sqs.New(s)
 
 	bodyTmpl := `{
       "replyToken": "%v%v",
