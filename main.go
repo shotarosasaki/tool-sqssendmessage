@@ -1,11 +1,10 @@
 package main
 
 import (
-	"encoding/json"
+	"context"
 	"fmt"
 	"os"
 	"strings"
-	"sync"
 
 	"time"
 
@@ -14,7 +13,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/sqs"
-	"github.com/line/line-bot-sdk-go/linebot"
 	uuid "github.com/satori/go.uuid"
 )
 
@@ -73,8 +71,8 @@ func main() {
 	argACID := flag.String("acid", "1234abcd5678efgh", "ACID")
 	argUserID := flag.String("userID", "U1234567890abcdefgh1234567890abcd", "ユーザID")
 	argQueueName := flag.String("queueName", "local_line_messages", "SQSキュー名")
-	argThroughput := flag.Int("throughput", 10, "秒間スループット")
-	argDuration := flag.Int("duration", 30, "継続時間（単位：秒）")
+	argThroughput := flag.Int("throughput", 10, "１秒当たりのSQS投入メッセージ数")
+	argDuration := flag.Int("duration", 5, "継続時間（単位：秒）")
 
 	argEndpoint := flag.String("endpoint", "http://localhost:9324/queue/", "SQSエンドポイント(ローカルでElasticMQ起動した際のエンドポイント指定用)")
 
@@ -106,34 +104,13 @@ func main() {
 	loopCount := *argThroughput / 10
 	fmt.Printf("[%v][ACID:%v]loopCount:%v\n", time.Now().Format(tformat), *argACID, loopCount)
 
-	// 1秒ごとに指定スループットのメッセージをSQSに送信
+	// コストのかかるものは事前に準備
+	entriesentriesentries := make(map[int]map[int][]*sqs.SendMessageBatchRequestEntry)
 	for k := 0; k < *argDuration; k++ {
-		var wg sync.WaitGroup
-
-		// 1回のバッチ送信で１０メッセージまで同時に送信可能
-		// 例えば、指定スループットが秒間２００メッセージとすると、以下のループカウントは２００÷１０＝２０回となる（各ループはGoroutine実行のため非同期）
+		entriesentries := make(map[int][]*sqs.SendMessageBatchRequestEntry)
 		for i := 0; i < loopCount; i++ {
-			fmt.Printf("[%v][ACID:%v]No.%v-%v\n", time.Now().Format(tformat), *argACID, k, i)
-
 			var entries []*sqs.SendMessageBatchRequestEntry
-
-			// SQSへのバッチ送信に渡すエントリーを指定件数分、生成
 			for j := 0; j < 10; j++ {
-
-				// LINE-API[Push](https://developers.line.me/ja/docs/messaging-api/reference/#anchor-0c00cb0f42b970892f7c3382f92620dca5a110fc)のメッセージ形式に依存
-				pushStruct := &struct {
-					To       string            `json:"to"`
-					Messages []linebot.Message `json:"messages"`
-				}{
-					To:       *argUserID,
-					Messages: []linebot.Message{linebot.NewTextMessage(fmt.Sprintf("SQS投入負荷ツール：No.%v-%v-%v", k, i, j))},
-				}
-				btEvent, err := json.Marshal(pushStruct)
-				if err != nil {
-					panic(err)
-				}
-				bodyTmpl := string(btEvent)
-
 				entries = append(entries, &sqs.SendMessageBatchRequestEntry{
 					Id: aws.String(fmt.Sprintf("%v%v%v", k, i, j)),
 					MessageAttributes: map[string]*sqs.MessageAttributeValue{
@@ -141,30 +118,57 @@ func main() {
 						"acid":            &sqs.MessageAttributeValue{DataType: aws.String("String"), StringValue: aws.String(*argACID)},
 						"sendType":        &sqs.MessageAttributeValue{DataType: aws.String("Number"), StringValue: aws.String("2")},
 					},
-					MessageBody: aws.String(bodyTmpl),
+					MessageBody: aws.String(
+						fmt.Sprintf(`{"to":"U9999999999aaaaaaaaaa9999999999bbbb","messages":[{"type":"text","text":"SQS投入負荷ツール：No.%v-%v-%v"}]}`, k, i, j),
+					),
 				})
 			}
-
-			wg.Add(1)
-			go func(wg *sync.WaitGroup) {
-				defer wg.Done()
-				res, err := svc.SendMessageBatch(&sqs.SendMessageBatchInput{
-					QueueUrl: queueUrl,
-					Entries:  entries,
-				})
-				if err != nil {
-					fmt.Printf("[%v][ACID:%v]SendMessageBatch Error:%#v\n", time.Now().Format(tformat), *argACID, err.Error())
-					panic(err)
-				}
-				if res == nil {
-					panic("res is nil")
-				}
-			}(&wg)
+			entriesentries[i] = entries
 		}
+		entriesentriesentries[k] = entriesentries
+	}
 
-		wg.Wait()
+	cancelCtx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
-		time.Sleep(1 * time.Second)
+	d, err := time.ParseDuration("1s")
+	if err != nil {
+		panic(err)
+	}
+
+	kCnt := 0
+	ticker := time.NewTicker(d)
+	for {
+		select {
+		case t := <-ticker.C:
+			if kCnt >= *argDuration {
+				fmt.Printf("[%v][ACID:%v]END\n", time.Now().Format(tformat), *argACID)
+				return
+			}
+			fmt.Printf("[%v][ACID:%v]tick\n", t.Format(tformat), *argACID)
+
+			for i := 0; i < loopCount; i++ {
+				fmt.Printf("[%v][ACID:%v]No.%v-%v\n", time.Now().Format(tformat), *argACID, kCnt, i)
+				go func(k, i int, entriesentriesentries map[int]map[int][]*sqs.SendMessageBatchRequestEntry, cancel context.CancelFunc) {
+					res, err := svc.SendMessageBatch(&sqs.SendMessageBatchInput{
+						QueueUrl: queueUrl,
+						Entries:  entriesentriesentries[k][i],
+					})
+					if err != nil {
+						fmt.Printf("[%v][ACID:%v]SendMessageBatch Error:%#v\n", time.Now().Format(tformat), *argACID, err.Error())
+						cancel()
+					}
+					if res == nil {
+						cancel()
+					}
+				}(kCnt, i, entriesentriesentries, cancel)
+			}
+
+			kCnt = kCnt + 1
+		case <-cancelCtx.Done():
+			fmt.Printf("[%v][ACID:%v]END2\n", time.Now().Format(tformat), *argACID)
+			return
+		}
 	}
 
 	fmt.Printf("[%v][ACID:%v]END\n", time.Now().Format(tformat), *argACID)
