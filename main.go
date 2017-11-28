@@ -119,7 +119,7 @@ func main() {
 						"sendType":        &sqs.MessageAttributeValue{DataType: aws.String("Number"), StringValue: aws.String("2")},
 					},
 					MessageBody: aws.String(
-						fmt.Sprintf(`{"to":"U9999999999aaaaaaaaaa9999999999bbbb","messages":[{"type":"text","text":"SQS投入負荷ツール：No.%v-%v-%v"}]}`, k, i, j),
+						fmt.Sprintf(`{"to":"%v","messages":[{"type":"text","text":"SQS投入負荷ツール：No.%v-%v-%v"}]}`, *argUserID, k, i, j),
 					),
 				})
 			}
