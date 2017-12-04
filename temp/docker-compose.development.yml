@@ -1,0 +1,21 @@
+version: '2'
+
+services:
+    sqssendmessage:
+        image: aws-ecr/sqssendmessage:development
+        container_name: sqssendmessage
+        build:
+            context: .
+            dockerfile: Dockerfile
+            args:
+                - ENVIRONMENT=development
+        restart: always
+        volumes_from:
+            - sqssendmessage-data
+
+    sqssendmessage-data:
+        image: ubuntu:latest
+        container_name: sqssendmessage-data
+        volumes:
+            - /data/logs:/data/logs
+            - /etc/sqssendmessage:/etc/sqssendmessage

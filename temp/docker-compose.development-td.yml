@@ -1,0 +1,21 @@
+version: '2'
+
+services:
+    fluentd:
+        image: aws-ecr/xxxx/fluentd:development
+        container_name: xxxx
+        build:
+            context: ./xxxx/
+            dockerfile: DockerfileXXXX
+        environment:
+            - TD_DB_NAME=XXXX
+            - TD_API_KEY=XXXX
+        volumes_from:
+            - xxxx-data
+
+    xxxx-data:
+        image: ubuntu:latest
+        container_name: dialogone-james-data
+        volumes:
+            - /data/logs:/data/logs
+            - /var/log/td-agent:/var/log/td-agent
